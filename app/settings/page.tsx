@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -10,18 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save, Lock, Bell, Eye, EyeOff, Upload, Copy, Check } from "lucide-react"
+import { ArrowLeft, Save, Lock, Bell, Eye, EyeOff } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface UserData {
   email: string
   name: string
-  phone?: string
-  accountNumber?: string
-  bvn?: string
-  ssn?: string
-  profilePicture?: string | null
-  balance?: number
 }
 
 export default function SettingsPage() {
@@ -30,15 +22,11 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("profile")
   const [saveSuccess, setSaveSuccess] = useState(false)
-  const [copiedField, setCopiedField] = useState("")
 
   // Profile state
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [bvn, setBvn] = useState("")
-  const [ssn, setSsn] = useState("")
-  const [profilePicture, setProfilePicture] = useState<string | null>(null)
+  const [phone, setPhone] = useState("+91 98765 43210")
 
   // Security state
   const [currentPassword, setCurrentPassword] = useState("")
@@ -66,39 +54,13 @@ export default function SettingsPage() {
     setUser(parsedUser)
     setName(parsedUser.name)
     setEmail(parsedUser.email)
-    setPhone(parsedUser.phone || "")
-    setBvn(parsedUser.bvn || "")
-    setSsn(parsedUser.ssn || "")
-    setProfilePicture(parsedUser.profilePicture || null)
     setLoading(false)
   }, [router])
 
   const handleSaveProfile = () => {
-    if (!user) return
-    const updatedUser = {
-      ...user,
-      name,
-      email,
-      phone,
-      bvn,
-      ssn,
-      profilePicture,
-    }
-    localStorage.setItem("user", JSON.stringify(updatedUser))
-    setUser(updatedUser)
+    localStorage.setItem("user", JSON.stringify({ name, email }))
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 3000)
-  }
-
-  const handleProfilePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setProfilePicture(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
   }
 
   const handleChangePassword = () => {
@@ -129,12 +91,6 @@ export default function SettingsPage() {
   const handleSavePrivacy = () => {
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 3000)
-  }
-
-  const copyToClipboard = (text: string, field: string) => {
-    navigator.clipboard.writeText(text)
-    setCopiedField(field)
-    setTimeout(() => setCopiedField(""), 2000)
   }
 
   if (loading) {
@@ -188,49 +144,9 @@ export default function SettingsPage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6 mt-6">
-            {/* Profile Picture Section */}
             <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
               <CardHeader>
-                <CardTitle className="text-white">Profile Picture</CardTitle>
-                <CardDescription className="text-slate-400">Upload or change your profile picture</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-6">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center overflow-hidden">
-                    {profilePicture ? (
-                      <img
-                        src={profilePicture || "/placeholder.svg"}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-3xl font-bold text-white">{name.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor="profile-picture" className="text-slate-300 cursor-pointer">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                        <Upload className="w-4 h-4" />
-                        Upload Picture
-                      </div>
-                    </Label>
-                    <Input
-                      id="profile-picture"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePictureUpload}
-                      className="hidden"
-                    />
-                    <p className="text-slate-400 text-sm mt-2">JPG, PNG or GIF (Max 5MB)</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Personal Information */}
-            <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-white">Personal Information</CardTitle>
+                <CardTitle className="text-white">Profile Information</CardTitle>
                 <CardDescription className="text-slate-400">Update your personal details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -268,77 +184,10 @@ export default function SettingsPage() {
                     className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bvn" className="text-slate-300">
-                    BVN (Bank Verification Number)
-                  </Label>
-                  <Input
-                    id="bvn"
-                    placeholder="Enter your 11-digit BVN"
-                    value={bvn}
-                    onChange={(e) => setBvn(e.target.value)}
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
-                  />
-                  <p className="text-slate-400 text-xs">Used for identity verification and compliance</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="ssn" className="text-slate-300">
-                    SSN (Social Security Number)
-                  </Label>
-                  <Input
-                    id="ssn"
-                    placeholder="Enter your SSN (XXX-XX-XXXX)"
-                    value={ssn}
-                    onChange={(e) => setSsn(e.target.value)}
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
-                  />
-                  <p className="text-slate-400 text-xs">Encrypted and securely stored</p>
-                </div>
-
                 <Button onClick={handleSaveProfile} className="bg-blue-600 hover:bg-blue-700 text-white w-full">
                   <Save className="w-4 h-4 mr-2" />
                   Save Profile
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* Account Information */}
-            <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-white">Account Information</CardTitle>
-                <CardDescription className="text-slate-400">Your account details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-700/30">
-                  <div>
-                    <p className="text-slate-400 text-sm">Account Number</p>
-                    <p className="text-white font-mono font-semibold">{user?.accountNumber}</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(user?.accountNumber || "", "account")}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
-                  >
-                    {copiedField === "account" ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-700/30">
-                  <div>
-                    <p className="text-slate-400 text-sm">Available Balance</p>
-                    <p className="text-white font-semibold text-lg">${(user?.balance || 0).toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-700/30">
-                  <div>
-                    <p className="text-slate-400 text-sm">Account Status</p>
-                    <p className="text-green-400 font-semibold">Active</p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </TabsContent>

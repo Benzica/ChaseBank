@@ -3,27 +3,13 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import {
-  LogOut,
-  Settings,
-  Eye,
-  EyeOff,
-  TrendingUp,
-  TrendingDown,
-  Send,
-  CreditCard,
-  FileText,
-  MoreVertical,
-} from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { LogOut, Settings, Eye, EyeOff, TrendingUp, TrendingDown, Send, Plus } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface UserData {
   email: string
   name: string
-  accountNumber: string
-  balance: number
 }
 
 interface Transaction {
@@ -63,8 +49,7 @@ export default function DashboardPage() {
       router.push("/")
       return
     }
-    const parsedUser = JSON.parse(userData)
-    setUser(parsedUser)
+    setUser(JSON.parse(userData))
     setLoading(false)
   }, [router])
 
@@ -90,37 +75,20 @@ export default function DashboardPage() {
             <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600">
               <span className="text-white font-bold">$</span>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">FinanceHub</h1>
-              <p className="text-slate-400 text-xs">Welcome, {user?.name}</p>
-            </div>
+            <h1 className="text-2xl font-bold text-white">FinanceHub</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
-                  <MoreVertical className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                <DropdownMenuItem onClick={() => router.push("/settings")} className="text-slate-300 cursor-pointer">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/cards")} className="text-slate-300 cursor-pointer">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Cards
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/receipts")} className="text-slate-300 cursor-pointer">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Receipts
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout} className="text-red-400 cursor-pointer">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push("/settings")}
+              className="text-slate-400 hover:text-white"
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="text-slate-400 hover:text-white">
+              <LogOut className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </header>
@@ -153,13 +121,11 @@ export default function DashboardPage() {
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-blue-100 text-sm mb-2">Available Balance</p>
-                <p className="text-4xl font-bold">
-                  {showBalance ? `$${(user?.balance || 0).toLocaleString()}` : "••••••"}
-                </p>
+                <p className="text-4xl font-bold">{showBalance ? "$24,580.50" : "••••••"}</p>
               </div>
               <div className="text-right">
-                <p className="text-blue-100 text-sm">Account Number</p>
-                <p className="text-lg font-mono">•••• •••• •••• {user?.accountNumber?.slice(-4)}</p>
+                <p className="text-blue-100 text-sm">Card Number</p>
+                <p className="text-lg font-mono">•••• •••• •••• 4829</p>
               </div>
             </div>
           </CardContent>
@@ -184,30 +150,36 @@ export default function DashboardPage() {
             {/* Account Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-                <CardContent className="pt-6">
-                  <div className="text-slate-300 text-sm font-medium flex items-center gap-2 mb-2">
+                <CardHeader>
+                  <CardTitle className="text-slate-300 text-sm font-medium flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-green-400" />
                     Income
-                  </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="text-3xl font-bold text-white">$65,000</div>
                   <p className="text-green-400 text-sm mt-2">This month</p>
                 </CardContent>
               </Card>
 
               <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-                <CardContent className="pt-6">
-                  <div className="text-slate-300 text-sm font-medium flex items-center gap-2 mb-2">
+                <CardHeader>
+                  <CardTitle className="text-slate-300 text-sm font-medium flex items-center gap-2">
                     <TrendingDown className="w-4 h-4 text-red-400" />
                     Expenses
-                  </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="text-3xl font-bold text-white">$4,550</div>
                   <p className="text-red-400 text-sm mt-2">This month</p>
                 </CardContent>
               </Card>
 
               <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-                <CardContent className="pt-6">
-                  <div className="text-slate-300 text-sm font-medium mb-2">Savings Rate</div>
+                <CardHeader>
+                  <CardTitle className="text-slate-300 text-sm font-medium">Savings Rate</CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="text-3xl font-bold text-white">93%</div>
                   <p className="text-blue-400 text-sm mt-2">Excellent</p>
                 </CardContent>
@@ -216,39 +188,33 @@ export default function DashboardPage() {
 
             {/* Quick Actions */}
             <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-              <CardContent className="pt-6">
-                <h3 className="text-white font-semibold mb-4">Quick Actions</h3>
+              <CardHeader>
+                <CardTitle className="text-white">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Button
-                    onClick={() => router.push("/transfers")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-                  >
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
                     <Send className="w-4 h-4" />
                     Transfer
                   </Button>
                   <Button
-                    onClick={() => router.push("/cards")}
                     variant="outline"
                     className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent flex items-center gap-2"
                   >
-                    <CreditCard className="w-4 h-4" />
-                    Cards
+                    <Plus className="w-4 h-4" />
+                    Add Account
                   </Button>
                   <Button
-                    onClick={() => router.push("/receipts")}
                     variant="outline"
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent flex items-center gap-2"
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
                   >
-                    <FileText className="w-4 h-4" />
-                    Receipts
+                    Pay Bills
                   </Button>
                   <Button
-                    onClick={() => router.push("/settings")}
                     variant="outline"
-                    className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent flex items-center gap-2"
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
                   >
-                    <Settings className="w-4 h-4" />
-                    Settings
+                    View Statements
                   </Button>
                 </div>
               </CardContent>
@@ -259,46 +225,46 @@ export default function DashboardPage() {
           <TabsContent value="accounts" className="space-y-6 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-                <CardContent className="pt-6">
-                  <h3 className="text-white font-semibold mb-4">Savings Account</h3>
-                  <p className="text-slate-400 text-sm mb-4">Primary Account</p>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Balance</span>
-                      <span className="text-white font-semibold">${(user?.balance || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Interest Rate</span>
-                      <span className="text-white font-semibold">4.5% p.a.</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Account Number</span>
-                      <span className="text-white font-mono text-sm">••••••••{user?.accountNumber?.slice(-4)}</span>
-                    </div>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-4">Manage Account</Button>
+                <CardHeader>
+                  <CardTitle className="text-white">Savings Account</CardTitle>
+                  <CardDescription className="text-slate-400">Primary Account</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Balance</span>
+                    <span className="text-white font-semibold">$24,580.50</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Interest Rate</span>
+                    <span className="text-white font-semibold">4.5% p.a.</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Account Number</span>
+                    <span className="text-white font-mono text-sm">••••••••4829</span>
+                  </div>
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-4">Manage Account</Button>
                 </CardContent>
               </Card>
 
               <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-                <CardContent className="pt-6">
-                  <h3 className="text-white font-semibold mb-4">Current Account</h3>
-                  <p className="text-slate-400 text-sm mb-4">Business Account</p>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Balance</span>
-                      <span className="text-white font-semibold">$8,920.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Monthly Fee</span>
-                      <span className="text-white font-semibold">$0</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Account Number</span>
-                      <span className="text-white font-mono text-sm">••••••••5021</span>
-                    </div>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-4">Manage Account</Button>
+                <CardHeader>
+                  <CardTitle className="text-white">Current Account</CardTitle>
+                  <CardDescription className="text-slate-400">Business Account</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Balance</span>
+                    <span className="text-white font-semibold">$8,920.00</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Monthly Fee</span>
+                    <span className="text-white font-semibold">$0</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Account Number</span>
+                    <span className="text-white font-mono text-sm">••••••••5021</span>
+                  </div>
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-4">Manage Account</Button>
                 </CardContent>
               </Card>
             </div>
@@ -307,9 +273,11 @@ export default function DashboardPage() {
           {/* Transactions Tab */}
           <TabsContent value="transactions" className="space-y-6 mt-6">
             <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
-              <CardContent className="pt-6">
-                <h3 className="text-white font-semibold mb-2">Recent Transactions</h3>
-                <p className="text-slate-400 text-sm mb-4">Your latest account activity</p>
+              <CardHeader>
+                <CardTitle className="text-white">Recent Transactions</CardTitle>
+                <CardDescription className="text-slate-400">Your latest account activity</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
                   {transactions.map((transaction) => (
                     <div

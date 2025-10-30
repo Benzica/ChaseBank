@@ -26,14 +26,8 @@ export default function AuthPage() {
   // Register state
   const [registerName, setRegisterName] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
-  const [registerPhone, setRegisterPhone] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("")
-
-  const generateAccountNumber = (): string => {
-    const randomNum = Math.floor(Math.random() * 9000000000) + 1000000000
-    return randomNum.toString()
-  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +36,7 @@ export default function AuthPage() {
     setLoading(true)
 
     try {
+      // Simulate API call
       if (!loginEmail || !loginPassword) {
         throw new Error("Please fill in all fields")
       }
@@ -49,14 +44,8 @@ export default function AuthPage() {
         throw new Error("Please enter a valid email")
       }
 
-      const allUsers = JSON.parse(localStorage.getItem("allUsers") || "[]")
-      const user = allUsers.find((u: any) => u.email === loginEmail && u.password === loginPassword)
-
-      if (!user) {
-        throw new Error("Invalid email or password")
-      }
-
-      localStorage.setItem("currentUser", JSON.stringify(user))
+      // Store user session
+      localStorage.setItem("user", JSON.stringify({ email: loginEmail, name: "User" }))
       setSuccess("Login successful! Redirecting...")
       setTimeout(() => router.push("/dashboard"), 1500)
     } catch (err) {
@@ -73,7 +62,7 @@ export default function AuthPage() {
     setLoading(true)
 
     try {
-      if (!registerName || !registerEmail || !registerPhone || !registerPassword || !registerConfirmPassword) {
+      if (!registerName || !registerEmail || !registerPassword || !registerConfirmPassword) {
         throw new Error("Please fill in all fields")
       }
       if (!registerEmail.includes("@")) {
@@ -86,29 +75,8 @@ export default function AuthPage() {
         throw new Error("Passwords do not match")
       }
 
-      const allUsers = JSON.parse(localStorage.getItem("allUsers") || "[]")
-      if (allUsers.some((u: any) => u.email === registerEmail)) {
-        throw new Error("Email already registered")
-      }
-
-      const accountNumber = generateAccountNumber()
-      const userData = {
-        email: registerEmail,
-        name: registerName,
-        phone: registerPhone,
-        password: registerPassword,
-        accountNumber: accountNumber,
-        balance: 0.0,
-        bvn: "",
-        ssn: "",
-        profilePicture: null,
-        createdAt: new Date().toISOString(),
-      }
-
-      allUsers.push(userData)
-      localStorage.setItem("allUsers", JSON.stringify(allUsers))
-      localStorage.setItem("currentUser", JSON.stringify(userData))
-
+      // Store user session
+      localStorage.setItem("user", JSON.stringify({ email: registerEmail, name: registerName }))
       setSuccess("Registration successful! Redirecting...")
       setTimeout(() => router.push("/dashboard"), 1500)
     } catch (err) {
@@ -232,19 +200,6 @@ export default function AuthPage() {
                       placeholder="you@example.com"
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
-                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-phone" className="text-slate-300">
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="register-phone"
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
-                      value={registerPhone}
-                      onChange={(e) => setRegisterPhone(e.target.value)}
                       className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
                     />
                   </div>
