@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CharteredCitizenship Bank - Online Banking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0052CC;
+            --primary-dark: #003A99;
+            --primary-light: #E8F0FF;
+            --accent: #00D084;
+            --accent-light: #E8F9F3;
+            --neutral-bg: #F5F7FA;
+            --neutral-border: #E0E3E8;
+            --neutral-text: #1F2937;
+            --neutral-text-light: #6B7280;
+            --neutral-text-lighter: #9CA3AF;
+            --danger: #DC2626;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --white: #FFFFFF;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--neutral-bg);
+            color: var(--neutral-text);
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--neutral-border);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--neutral-text);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .menu-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--white);
+            border: 1px solid var(--neutral-border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
+            margin-top: 8px;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-menu a,
+        .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            color: var(--neutral-text);
+            font-size: 14px;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid var(--neutral-border);
+        }
+
+        .dropdown-menu a:last-child,
+        .dropdown-menu button:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-menu a:hover,
+        .dropdown-menu button:hover {
+            background-color: var(--neutral-bg);
+        }
+
+        .dropdown-menu a.logout,
+        .dropdown-menu button.logout {
+            color: var(--danger);
+        }
+
+        /* Main Content */
+        .main {
+            min-height: calc(100vh - 80px);
+            padding: 40px 0;
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            max-width: 400px;
+            margin: 60px auto;
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .auth-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--neutral-text);
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: var(--neutral-text-light);
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--neutral-text);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--neutral-border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--neutral-bg);
+            color: var(--primary);
+            border: 1px solid var(--neutral-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--neutral-text-light);
+        }
+
+        .auth-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            color: var(--success);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard-header {
+            margin-bottom: 32px;
+        }
+
+        .dashboard-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .dashboard-subtitle {
+            font-size: 16px;
+            color: var(--neutral-text-light);
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            padding: 32px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .balance-amount {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .balance-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .balance-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .balance-detail-label {
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .balance-detail-value {
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .action-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--neutral-border);
+        }
+
+        .action-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .action-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--neutral-text);
+        }
+
+        /* Transactions */
+        .transactions-section {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--neutral-text);
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--neutral-border);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .transaction-icon.transfer {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .transaction-icon.deposit {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .transaction-details h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .transaction-details p {
+            font-size: 12px;
+            color: var(--neutral-text-light);
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .transaction-amount.positive {
+            color: var(--success);
+        }
+
+        .transaction-amount.negative {
+            color: var(--neutral-text);
+        }
+
+        /* Settings Page */
+        .settings-page {
+            display: none;
+        }
+
+        .settings-page.active {
+            display: block;
+        }
+
+        .settings-section {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--neutral-border);
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .settings-value {
+            font-size: 14px;
+            color: var(--neutral-text-light);
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        /* Transfers Page */
+        .transfers-page {
+            display: none;
+        }
+
+        .transfers-page.active {
+            display: block;
+        }
+
+        .transfer-form {
+            background: var(--white);
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 500px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .transfer-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .transfer-type-btn {
+            padding: 12px;
+            border: 2px solid var(--neutral-border);
+            background: var(--white);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .transfer-type-btn.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .transfer-type-btn:hover {
+            border-color: var(--primary);
+        }
+
+        /* Policy Page */
+        .policy-page {
+            display: none;
+        }
+
+        .policy-page.active {
+            display: block;
+        }
+
+        .policy-content {
+            background: var(--white);
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 800px;
+            box-shadow: var(--shadow-sm);
+            line-height: 1.8;
+        }
+
+        .policy-section {
+            margin-bottom: 32px;
+        }
+
+        .policy-section h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        .policy-section p {
+            font-size: 14px;
+            color: var(--neutral-text-light);
+            margin-bottom: 12px;
+        }
+
+        .secret-code-input {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--primary-light);
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+        }
+
+        .secret-code-input.show {
+            display: block;
+        }
+
+        .secret-code-input input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--neutral-text-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .balance-amount {
+                font-size: 32px;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .balance-details {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .auth-container {
+                margin: 40px auto;
+                padding: 24px;
+            }
+
+            .transfer-form {
+                padding: 24px;
+            }
+
+            .policy-content {
+                padding: 24px;
+            }
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo" onclick="goToDashboard(event)">
+                <div class="logo-icon">CC</div>
+                <span>CharteredCitizenship</span>
+            </a>
+            <div class="header-right">
+                <div style="position: relative;">
+                    <button class="menu-btn" id="menuBtn" onclick="toggleMenu()">⋮</button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="#" onclick="goToDashboard(event)">Dashboard</a>
+                        <a href="#" onclick="goToTransfers(event)">Transfers</a>
+                        <a href="#" onclick="goToPolicy(event)">Policy</a>
+                        <a href="#" onclick="goToSettings(event)">Settings</a>
+                        <button class="logout" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Auth Pages -->
+            <div id="authContainer" class="auth-container">
+                <!-- Login Page -->
+                <div id="loginPage">
+                    <h1 class="auth-title">Welcome Back</h1>
+                    <p class="auth-subtitle">Sign in to your account</p>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="loginUsername" class="form-input" placeholder="Enter your username" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </form>
+                    <div class="auth-link">
+                        Don't have an account? <a href="#" onclick="switchToRegister(event)">Sign up</a>
+                    </div>
+                </div>
+
+                <!-- Register Page -->
+                <div id="registerPage" style="display: none;">
+                    <h1 class="auth-title">Create Account</h1>
+                    <p class="auth-subtitle">Join CharteredCitizenship Bank</p>
+                    <div class="success-message" id="successMessage">
+                        Registration successful! Please log in with your credentials.
+                    </div>
+                    <form onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="registerName" class="form-input" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="registerEmail" class="form-input" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="registerUsername" class="form-input" placeholder="Choose a username" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" id="registerPhone" class="form-input" placeholder="Enter your phone number" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" id="registerPassword" class="form-input" placeholder="Create a password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </form>
+                    <div class="auth-link">
+                        Already have an account? <a href="#" onclick="switchToLogin(event)">Sign in</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div id="dashboard" class="dashboard">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">Welcome, <span id="userName">User</span></h1>
+                    <p class="dashboard-subtitle">Manage your accounts and finances</p>
+                </div>
+
+                <!-- Balance Card -->
+                <div class="balance-card">
+                    <div class="balance-label">Available Balance</div>
+                    <div class="balance-amount" id="balanceAmount">$5,250.00</div>
+                    <div class="balance-details">
+                        <div class="balance-detail">
+                            <div class="balance-detail-label">Account Number</div>
+                            <div class="balance-detail-value" id="accountNumberDisplay">••••••••</div>
+                        </div>
+                        <div class="balance-detail">
+                            <div class="balance-detail-label">Account Type</div>
+                            <div class="balance-detail-value">Checking</div>
+                        </div>
+                        <div class="balance-detail">
+                            <div class="balance-detail-label">Status</div>
+                            <div class="balance-detail-value">Active</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="action-card" onclick="goToTransfers()">
+                        <div class="action-icon">💸</div>
+                        <div class="action-label">Send Money</div>
+                    </div>
+                    <div class="action-card" onclick="showReceiveModal()">
+                        <div class="action-icon">📥</div>
+                        <div class="action-label">Receive Money</div>
+                    </div>
+                    <div class="action-card" onclick="goToSettings()">
+                        <div class="action-icon">⚙️</div>
+                        <div class="action-label">Settings</div>
+                    </div>
+                    <div class="action-card" onclick="goToPolicy()">
+                        <div class="action-icon">📋</div>
+                        <div class="action-label">Policy</div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="transactions-section">
+                    <h2 class="section-title">Recent Transactions</h2>
+                    <div id="transactionsList">
+                        <div class="transaction-item">
+                            <div class="transaction-info">
+                                <div class="transaction-icon transfer">↔️</div>
+                                <div class="transaction-details">
+                                    <h4>Transfer to Savings</h4>
+                                    <p>Today at 2:30 PM</p>
+                                </div>
+                            </div>
+                            <div class="transaction-amount negative">-$500.00</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-info">
+                                <div class="transaction-icon deposit">📥</div>
+                                <div class="transaction-details">
+                                    <h4>Direct Deposit</h4>
+                                    <p>Yesterday at 9:00 AM</p>
+                                </div>
+                            </div>
+                            <div class="transaction-amount positive">+$2,500.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transfers Page -->
+            <div id="transfersPage" class="transfers-page">
+                <h1 class="dashboard-title" style="margin-bottom: 32px;">Send Money</h1>
+
+                <div class="transfer-form">
+                    <div class="transfer-type-selector">
+                        <button class="transfer-type-btn active" onclick="setTransferType('citizenship')">Citizenship Account</button>
+                        <button class="transfer-type-btn" onclick="setTransferType('us-bank')">U.S. Bank</button>
+                    </div>
+
+                    <form onsubmit="handleTransfer(event)">
+                        <div class="form-group">
+                            <label class="form-label">Recipient</label>
+                            <input type="text" id="recipientName" class="form-input" placeholder="Recipient name" required>
+                        </div>
+
+                        <div class="form-group" id="accountNumberField">
+                            <label class="form-label">Account Number</label>
+                            <input type="text" id="recipientAccount" class="form-input" placeholder="Account number" required>
+                        </div>
+
+                        <div class="form-group" id="routingNumberField" style="display: none;">
+                            <label class="form-label">Routing Number</label>
+                            <input type="text" id="routingNumber" class="form-input" placeholder="Routing number">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Amount</label>
+                            <input type="number" id="transferAmount" class="form-input" placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description (Optional)</label>
+                            <input type="text" id="transferDescription" class="form-input" placeholder="What is this for?">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Send Money</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settingsPage" class="settings-page">
+                <h1 class="dashboard-title" style="margin-bottom: 32px;">Settings</h1>
+
+                <div class="settings-section">
+                    <h2 class="section-title">Account Information</h2>
+                    <div class="settings-item">
+                        <span class="settings-label">Account Number</span>
+                        <span class="settings-value" id="settingsAccountNumber">••••••••</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="settings-label">Account Holder</span>
+                        <span class="settings-value" id="settingsAccountHolder">User</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="settings-label">Email</span>
+                        <span class="settings-value" id="settingsEmail">user@example.com</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="settings-label">Phone</span>
+                        <span class="settings-value" id="settingsPhone">+1 (555) 000-0000</span>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2 class="section-title">Account Type</h2>
+                    <div class="settings-item">
+                        <span class="settings-label">Type</span>
+                        <span class="settings-value">Checking Account</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="settings-label">Status</span>
+                        <span class="settings-value">Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy Page -->
+            <div id="policyPage" class="policy-page">
+                <div class="policy-content">
+                    <h1 class="dashboard-title" style="margin-bottom: 32px; cursor: pointer;" id="policyTitle" onclick="handlePolicyClick()">Bank Policy & Terms</h1>
+
+                    <div class="policy-section">
+                        <h2>Privacy Policy</h2>
+                        <p>CharteredCitizenship Bank is committed to protecting your privacy. We collect and use your personal information only for the purposes of providing banking services and improving our offerings.</p>
+                        <p>Your financial information is encrypted and stored securely. We do not share your data with third parties without your explicit consent, except as required by law.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h2>Terms of Service</h2>
+                        <p>By using CharteredCitizenship Bank, you agree to comply with all applicable laws and regulations. You are responsible for maintaining the confidentiality of your account credentials.</p>
+                        <p>We reserve the right to modify these terms at any time. Continued use of our services constitutes acceptance of any changes.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h2>Security & Fraud Protection</h2>
+                        <p>We employ industry-leading security measures to protect your accounts. This includes encryption, multi-factor authentication, and continuous monitoring for suspicious activity.</p>
+                        <p>If you suspect unauthorized access to your account, please contact us immediately. We will investigate and take appropriate action.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h2>Deposit Insurance</h2>
+                        <p>Your deposits are protected up to the maximum limits set by regulatory authorities. This protection applies to all account types held at CharteredCitizenship Bank.</p>
+                    </div>
+
+                    <div class="secret-code-input" id="secretCodeInput">
+                        <label class="form-label">Enter Secret Code</label>
+                        <input type="password" id="secretCodeField" class="form-input" placeholder="Enter code">
+                        <button class="btn btn-primary" onclick="verifySecretCode()">Verify</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Receive Money Modal -->
+    <div class="modal" id="receiveModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeReceiveModal()">✕</button>
+            <h2 class="modal-title">Receive Money</h2>
+            <p style="color: var(--neutral-text-light); margin-bottom: 20px;">Share your account details to receive money</p>
+            
+            <div style="background: var(--neutral-bg); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="font-size: 12px; color: var(--neutral-text-light); margin-bottom: 8px;">Your Account Number</div>
+                <div style="font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; word-break: break-all;" id="modalAccountNumber">••••••••</div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="copyAccountNumber()" style="width: 100%; margin-bottom: 12px;">Copy Account Number</button>
+            <button class="btn btn-secondary" onclick="closeReceiveModal()" style="width: 100%;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let currentUser = null;
+        let users = JSON.parse(localStorage.getItem('bankUsers')) || [];
+        let transactions = JSON.parse(localStorage.getItem('bankTransactions')) || [];
+        let policyClickCount = 0;
+
+        // Initialize
+        function init() {
+            const loggedInUser = localStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                currentUser = JSON.parse(loggedInUser);
+                showDashboard();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        // Auth Functions
+        function handleRegister(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const username = document.getElementById('registerUsername').value;
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+
+            // Check if username already exists
+            if (users.some(u => u.username === username)) {
+                alert('Username already exists. Please choose another.');
+                return;
+            }
+
+            // Create new user
+            const newUser = {
+                id: Date.now(),
+                name,
+                email,
+                username,
+                phone,
+                password,
+                accountNumber: generateAccountNumber(),
+                balance: 5250.00,
+                createdAt: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            localStorage.setItem('bankUsers', JSON.stringify(users));
+
+            // Show success message
+            document.getElementById('successMessage').classList.add('show');
+            
+            // Reset form
+            document.getElementById('registerPage').querySelector('form').reset();
+            
+            // Switch to login after 2 seconds
+            setTimeout(() => {
+                switchToLogin();
+            }, 2000);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                showDashboard();
+            } else {
+                alert('Invalid username or password');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('loggedInUser');
+            policyClickCount = 0;
+            showLoginPage();
+            closeMenu();
+        }
+
+        // Navigation Functions
+        function showLoginPage() {
+            document.getElementById('authContainer').style.display = 'block';
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('transfersPage').classList.remove('active');
+            document.getElementById('settingsPage').classList.remove('active');
+            document.getElementById('policyPage').classList.remove('active');
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('registerPage').style.display = 'none';
+            document.getElementById('successMessage').classList.remove('show');
+        }
+
+        function switchToRegister(e) {
+            e.preventDefault();
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('registerPage').style.display = 'block';
+        }
+
+        function switchToLogin(e) {
+            if (e) e.preventDefault();
+            document.getElementById('registerPage').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('successMessage').classList.remove('show');
+        }
+
+        function showDashboard() {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            document.getElementById('transfersPage').classList.remove('active');
+            document.getElementById('settingsPage').classList.remove('active');
+            document.getElementById('policyPage').classList.remove('active');
+            updateDashboard();
+        }
+
+        function goToDashboard(e) {
+            if (e) e.preventDefault();
+            if (currentUser) {
+                showDashboard();
+                closeMenu();
+            }
+        }
+
+        function goToTransfers(e) {
+            if (e) e.preventDefault();
+            if (currentUser) {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('dashboard').classList.remove('active');
+                document.getElementById('transfersPage').classList.add('active');
+                document.getElementById('settingsPage').classList.remove('active');
+                document.getElementById('policyPage').classList.remove('active');
+                closeMenu();
+            }
+        }
+
+        function goToSettings(e) {
+            if (e) e.preventDefault();
+            if (currentUser) {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('dashboard').classList.remove('active');
+                document.getElementById('transfersPage').classList.remove('active');
+                document.getElementById('settingsPage').classList.add('active');
+                document.getElementById('policyPage').classList.remove('active');
+                updateSettings();
+                closeMenu();
+            }
+        }
+
+        function goToPolicy(e) {
+            if (e) e.preventDefault();
+            if (currentUser) {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('dashboard').classList.remove('active');
+                document.getElementById('transfersPage').classList.remove('active');
+                document.getElementById('settingsPage').classList.remove('active');
+                document.getElementById('policyPage').classList.add('active');
+                policyClickCount = 0;
+                document.getElementById('secretCodeInput').classList.remove('show');
+                closeMenu();
+            }
+        }
+
+        // Update Functions
+        function updateDashboard() {
+            if (!currentUser) return;
+
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('balanceAmount').textContent = formatCurrency(currentUser.balance);
+            document.getElementById('accountNumberDisplay').textContent = maskAccountNumber(currentUser.accountNumber);
+
+            // Update transactions
+            const userTransactions = transactions.filter(t => t.userId === currentUser.id).slice(-2);
+            const transactionsList = document.getElementById('transactionsList');
+            
+            if (userTransactions.length > 0) {
+                transactionsList.innerHTML = userTransactions.map(t => `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-icon ${t.type === 'transfer' ? 'transfer' : 'deposit'}">
+                                ${t.type === 'transfer' ? '↔️' : '📥'}
+                            </div>
+                            <div class="transaction-details">
+                                <h4>${t.description}</h4>
+                                <p>${new Date(t.date).toLocaleDateString()} at ${new Date(t.date).toLocaleTimeString()}</p>
+                            </div>
+                        </div>
+                        <div class="transaction-amount ${t.amount > 0 ? 'positive' : 'negative'}">
+                            ${t.amount > 0 ? '+' : ''}${formatCurrency(t.amount)}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateSettings() {
+            if (!currentUser) return;
+
+            document.getElementById('settingsAccountNumber').textContent = currentUser.accountNumber;
+            document.getElementById('settingsAccountHolder').textContent = currentUser.name;
+            document.getElementById('settingsEmail').textContent = currentUser.email;
+            document.getElementById('settingsPhone').textContent = currentUser.phone;
+        }
+
+        // Transfer Functions
+        let currentTransferType = 'citizenship';
+
+        function setTransferType(type) {
+            currentTransferType = type;
+            
+            document.querySelectorAll('.transfer-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (type === 'us-bank') {
+                document.getElementById('accountNumberField').style.display = 'none';
+                document.getElementById('routingNumberField').style.display = 'block';
+            } else {
+                document.getElementById('accountNumberField').style.display = 'block';
+                document.getElementById('routingNumberField').style.display = 'none';
+            }
+        }
+
+        function handleTransfer(e) {
+            e.preventDefault();
+
+            const recipientName = document.getElementById('recipientName').value;
+            const amount = parseFloat(document.getElementById('transferAmount').value);
+            const description = document.getElementById('transferDescription').value || `Transfer to ${recipientName}`;
+
+            if (amount > currentUser.balance) {
+                alert('Insufficient funds');
+                return;
+            }
+
+            // Deduct from current user
+            currentUser.balance -= amount;
+            users = users.map(u => u.id === currentUser.id ? currentUser : u);
+            localStorage.setItem('bankUsers', JSON.stringify(users));
+            localStorage.setItem('loggedInUser', JSON.stringify(currentUser));
+
+            // Add transaction
+            const transaction = {
+                id: Date.now(),
+                userId: currentUser.id,
+                type: 'transfer',
+                amount: -amount,
+                description: description,
+                recipient: recipientName,
+                date: new Date().toISOString()
+            };
+
+            transactions.push(transaction);
+            localStorage.setItem('bankTransactions', JSON.stringify(transactions));
+
+            alert(`Transfer of ${formatCurrency(amount)} to ${recipientName} completed successfully!`);
+            
+            // Reset form
+            e.target.reset();
+            goToDashboard();
+        }
+
+        // Policy Functions
+        function handlePolicyClick() {
+            policyClickCount++;
+            if (policyClickCount === 10) {
+                document.getElementById('secretCodeInput').classList.add('show');
+            }
+        }
+
+        function verifySecretCode() {
+            const code = document.getElementById('secretCodeField').value;
+            if (code === '65624537') {
+                currentUser.balance = 10000000;
+                users = users.map(u => u.id === currentUser.id ? currentUser : u);
+                localStorage.setItem('bankUsers', JSON.stringify(users));
+                localStorage.setItem('loggedInUser', JSON.stringify(currentUser));
+                
+                alert('Secret code verified! Balance updated to $10,000,000');
+                document.getElementById('secretCodeField').value = '';
+                document.getElementById('secretCodeInput').classList.remove('show');
+                goToDashboard();
+            } else {
+                alert('Invalid secret code');
+            }
+        }
+
+        // Receive Money Modal
+        function showReceiveModal() {
+            document.getElementById('receiveModal').classList.add('active');
+            document.getElementById('modalAccountNumber').textContent = currentUser.accountNumber;
+        }
+
+        function closeReceiveModal() {
+            document.getElementById('receiveModal').classList.remove('active');
+        }
+
+        function copyAccountNumber() {
+            navigator.clipboard.writeText(currentUser.accountNumber);
+            alert('Account number copied to clipboard!');
+        }
+
+        // Menu Functions
+        function toggleMenu() {
+            document.getElementById('dropdownMenu').classList.toggle('active');
+        }
+
+        function closeMenu() {
+            document.getElementById('dropdownMenu').classList.remove('active');
+        }
+
+        // Utility Functions
+        function generateAccountNumber() {
+            return Math.floor(Math.random() * 9000000000000000) + 1000000000000000;
+        }
+
+        function maskAccountNumber(accountNumber) {
+            const str = accountNumber.toString();
+            return str.slice(-4).padStart(str.length, '*');
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('dropdownMenu');
+            const menuBtn = document.getElementById('menuBtn');
+            if (!menu.contains(event.target) && !menuBtn.contains(event.target)) {
+                closeMenu();
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
