@@ -16,16 +16,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 interface UserData {
   email: string
   name: string
+  accountNumber: string
+  balance: number
+  phone?: string
 }
 
 interface Transfer {
   id: string
+  senderName: string
+  senderAccount: string
   recipientName: string
   recipientAccount: string
   amount: number
   date: string
+  time: string
   status: "completed" | "pending" | "failed"
   type: "sent" | "received"
+  description: string
 }
 
 export default function TransfersPage() {
@@ -35,7 +42,7 @@ export default function TransfersPage() {
   const [activeTab, setActiveTab] = useState("new-transfer")
 
   // Transfer form state
-  const [fromAccount, setFromAccount] = useState("savings")
+  const [fromAccount, setFromAccount] = useState("primary")
   const [recipientName, setRecipientName] = useState("")
   const [recipientAccount, setRecipientAccount] = useState("")
   const [amount, setAmount] = useState("")
@@ -43,54 +50,7 @@ export default function TransfersPage() {
   const [transferError, setTransferError] = useState("")
   const [transferSuccess, setTransferSuccess] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const transfers: Transfer[] = [
-    {
-      id: "1",
-      recipientName: "Rajesh Kumar",
-      recipientAccount: "••••••••5021",
-      amount: 5000,
-      date: "Today",
-      status: "completed",
-      type: "sent",
-    },
-    {
-      id: "2",
-      recipientName: "Priya Singh",
-      recipientAccount: "••••••••3456",
-      amount: 2500,
-      date: "Yesterday",
-      status: "completed",
-      type: "sent",
-    },
-    {
-      id: "3",
-      recipientName: "Amit Patel",
-      recipientAccount: "••••••••7890",
-      amount: 10000,
-      date: "2 days ago",
-      status: "pending",
-      type: "sent",
-    },
-    {
-      id: "4",
-      recipientName: "Neha Sharma",
-      recipientAccount: "••••••••1234",
-      amount: 15000,
-      date: "3 days ago",
-      status: "completed",
-      type: "received",
-    },
-    {
-      id: "5",
-      recipientName: "Vikram Desai",
-      recipientAccount: "••••••••5678",
-      amount: 3000,
-      date: "4 days ago",
-      status: "failed",
-      type: "sent",
-    },
-  ]
+  const [transfers, setTransfers] = useState<Transfer[]>([])
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -98,7 +58,14 @@ export default function TransfersPage() {
       router.push("/")
       return
     }
-    setUser(JSON.parse(userData))
+    const parsedUser = JSON.parse(userData)
+    setUser(parsedUser)
+
+    // Load transfers from localStorage
+    const storedTransfers = localStorage.getItem("transfers")
+    if (storedTransfers) {
+      setTransfers(JSON.parse(storedTransfers))
+    }
     setLoading(false)
   }, [router])
 
@@ -115,12 +82,46 @@ export default function TransfersPage() {
       if (isNaN(Number(amount)) || Number(amount) <= 0) {
         throw new Error("Please enter a valid amount")
       }
-      if (Number(amount) > 24580.5) {
+      if (!user) {
+        throw new Error("User data not found")
+      }
+      if (Number(amount) > (user.balance || 0)) {
         throw new Error("Insufficient balance for this transfer")
+      }
+      if (recipientAccount === user.accountNumber) {
+        throw new Error("Cannot transfer to your own account")
       }
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // Create transaction record
+      const newTransfer: Transfer = {
+        id: `TXN${Date.now()}`,
+        senderName: user.name,
+        senderAccount: user.accountNumber,
+        recipientName: recipientName,
+        recipientAccount: recipientAccount,
+        amount: Number(amount),
+        date: new Date().toISOString().split("T")[0],
+        time: new Date().toLocaleTimeString(),
+        status: "completed",
+        type: "sent",
+        description: description || "Transfer",
+      }
+
+      // Update user balance
+      const updatedUser = {
+        ...user,
+        balance: (user.balance || 0) - Number(amount),
+      }
+      localStorage.setItem("user", JSON.stringify(updatedUser))
+      setUser(updatedUser)
+
+      // Add to transfers list
+      const updatedTransfers = [newTransfer, ...transfers]
+      localStorage.setItem("transfers", JSON.stringify(updatedTransfers))
+      setTransfers(updatedTransfers)
 
       setTransferSuccess(true)
       setRecipientName("")
@@ -209,7 +210,9 @@ export default function TransfersPage() {
                 <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
                   <CardHeader>
                     <CardTitle className="text-white">Send Money</CardTitle>
-                    <CardDescription className="text-slate-400">Transfer funds to another account</CardDescription>
+                    <CardDescription className="text-slate-400">
+                      Transfer funds to another FinanceHub account
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {transferError && (
@@ -221,7 +224,7 @@ export default function TransfersPage() {
                     {transferSuccess && (
                       <Alert className="mb-6 bg-green-500/10 border-green-500/20">
                         <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        <AlertDescription className="text-green-500">Transfer initiated successfully!</AlertDescription>
+                        <AlertDescription className="text-green-500">Transfer completed successfully!</AlertDescription>
                       </Alert>
                     )}
 
@@ -235,11 +238,8 @@ export default function TransfersPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-slate-800 border-slate-700">
-                            <SelectItem value="savings" className="text-white">
-                              Savings Account ($24,580.50)
-                            </SelectItem>
-                            <SelectItem value="current" className="text-white">
-                              Current Account ($8,920.00)
+                            <SelectItem value="primary" className="text-white">
+                              Primary Account (${(user?.balance || 0).toLocaleString()})
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -251,7 +251,7 @@ export default function TransfersPage() {
                         </Label>
                         <Input
                           id="recipient-name"
-                          placeholder="Enter recipient name"
+                          placeholder="Enter recipient full name"
                           value={recipientName}
                           onChange={(e) => setRecipientName(e.target.value)}
                           className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
@@ -264,11 +264,12 @@ export default function TransfersPage() {
                         </Label>
                         <Input
                           id="recipient-account"
-                          placeholder="Enter account number"
+                          placeholder="Enter FinanceHub account number (e.g., CCB1234567890)"
                           value={recipientAccount}
                           onChange={(e) => setRecipientAccount(e.target.value)}
                           className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
                         />
+                        <p className="text-slate-400 text-xs">Your account: {user?.accountNumber}</p>
                       </div>
 
                       <div className="space-y-2">
@@ -291,7 +292,7 @@ export default function TransfersPage() {
                         </Label>
                         <Input
                           id="description"
-                          placeholder="Add a note"
+                          placeholder="Add a note for the recipient"
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
                           className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
@@ -318,8 +319,8 @@ export default function TransfersPage() {
                     <CardTitle className="text-slate-300 text-sm font-medium">Available Balance</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-white">$24,580.50</div>
-                    <p className="text-slate-400 text-sm mt-2">Savings Account</p>
+                    <div className="text-3xl font-bold text-white">${(user?.balance || 0).toLocaleString()}</div>
+                    <p className="text-slate-400 text-sm mt-2">Primary Account</p>
                   </CardContent>
                 </Card>
 
@@ -339,7 +340,7 @@ export default function TransfersPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-bold text-white">Free</div>
-                    <p className="text-slate-400 text-sm mt-2">No charges</p>
+                    <p className="text-slate-400 text-sm mt-2">Intra-bank transfers</p>
                   </CardContent>
                 </Card>
               </div>
@@ -354,41 +355,52 @@ export default function TransfersPage() {
                 <CardDescription className="text-slate-400">View all your transfers</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {transfers.map((transfer) => (
-                    <div
-                      key={transfer.id}
-                      className="flex items-center justify-between p-4 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center ${transfer.type === "received" ? "bg-green-500/20" : "bg-blue-500/20"}`}
-                        >
-                          {transfer.type === "received" ? (
-                            <TrendingUp className="w-5 h-5 text-green-400" />
-                          ) : (
-                            <Send className="w-5 h-5 text-blue-400" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-white font-medium">{transfer.recipientName}</p>
-                          <p className="text-slate-400 text-sm">{transfer.date}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p
-                            className={`font-semibold ${transfer.type === "received" ? "text-green-400" : "text-white"}`}
+                {transfers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-slate-400">No transfers yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {transfers.map((transfer) => (
+                      <div
+                        key={transfer.id}
+                        className="flex items-center justify-between p-4 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition cursor-pointer"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${transfer.type === "received" ? "bg-green-500/20" : "bg-blue-500/20"}`}
                           >
-                            {transfer.type === "received" ? "+" : "-"}${transfer.amount.toLocaleString()}
-                          </p>
-                          <p className={`text-sm capitalize ${getStatusColor(transfer.status)}`}>{transfer.status}</p>
+                            {transfer.type === "received" ? (
+                              <TrendingUp className="w-5 h-5 text-green-400" />
+                            ) : (
+                              <Send className="w-5 h-5 text-blue-400" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">
+                              {transfer.type === "sent" ? "Sent to" : "Received from"}{" "}
+                              {transfer.type === "sent" ? transfer.recipientName : transfer.senderName}
+                            </p>
+                            <p className="text-slate-400 text-sm">
+                              {transfer.date} {transfer.time}
+                            </p>
+                          </div>
                         </div>
-                        {getStatusIcon(transfer.status)}
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p
+                              className={`font-semibold ${transfer.type === "received" ? "text-green-400" : "text-white"}`}
+                            >
+                              {transfer.type === "received" ? "+" : "-"}${transfer.amount.toLocaleString()}
+                            </p>
+                            <p className={`text-sm capitalize ${getStatusColor(transfer.status)}`}>{transfer.status}</p>
+                          </div>
+                          {getStatusIcon(transfer.status)}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

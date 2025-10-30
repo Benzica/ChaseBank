@@ -26,6 +26,7 @@ export default function AuthPage() {
   // Register state
   const [registerName, setRegisterName] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
+  const [registerPhone, setRegisterPhone] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("")
 
@@ -62,7 +63,7 @@ export default function AuthPage() {
     setLoading(true)
 
     try {
-      if (!registerName || !registerEmail || !registerPassword || !registerConfirmPassword) {
+      if (!registerName || !registerEmail || !registerPhone || !registerPassword || !registerConfirmPassword) {
         throw new Error("Please fill in all fields")
       }
       if (!registerEmail.includes("@")) {
@@ -75,8 +76,20 @@ export default function AuthPage() {
         throw new Error("Passwords do not match")
       }
 
-      // Store user session
-      localStorage.setItem("user", JSON.stringify({ email: registerEmail, name: registerName }))
+      const accountNumber = "CCB" + Math.random().toString().slice(2, 12).padEnd(10, "0")
+      const userData = {
+        email: registerEmail,
+        name: registerName,
+        phone: registerPhone,
+        password: registerPassword,
+        accountNumber: accountNumber,
+        balance: 24580.5,
+        bvn: "",
+        ssn: "",
+        profilePicture: null,
+        createdAt: new Date().toISOString(),
+      }
+      localStorage.setItem("user", JSON.stringify(userData))
       setSuccess("Registration successful! Redirecting...")
       setTimeout(() => router.push("/dashboard"), 1500)
     } catch (err) {
@@ -200,6 +213,19 @@ export default function AuthPage() {
                       placeholder="you@example.com"
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-phone" className="text-slate-300">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="register-phone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={registerPhone}
+                      onChange={(e) => setRegisterPhone(e.target.value)}
                       className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
                     />
                   </div>
