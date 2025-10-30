@@ -98,7 +98,7 @@ export default function AuthPage() {
         phone: registerPhone,
         password: registerPassword,
         accountNumber: accountNumber,
-        balance: 75000.0,
+        balance: 0.0,
         bvn: "",
         ssn: "",
         profilePicture: null,
