@@ -12,6 +12,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+interface UserData {
+  email: string
+  name: string
+  username: string
+  phone: string
+  password: string
+  accountNumber: string
+  balance: number
+  balanceCredited?: boolean
+  bvn?: string
+  ssn?: string
+  profilePicture?: string | null
+  createdAt: string
+}
+
 export default function AuthPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("login")
@@ -20,15 +35,25 @@ export default function AuthPage() {
   const [success, setSuccess] = useState("")
 
   // Login state
-  const [loginEmail, setLoginEmail] = useState("")
+  const [loginUsername, setLoginUsername] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
 
   // Register state
   const [registerName, setRegisterName] = useState("")
+  const [registerUsername, setRegisterUsername] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPhone, setRegisterPhone] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("")
+
+  const generateAccountNumber = () => {
+    const length = Math.floor(Math.random() * 3) + 10 // Random length between 10-12
+    let accountNumber = ""
+    for (let i = 0; i < length; i++) {
+      accountNumber += Math.floor(Math.random() * 10)
+    }
+    return accountNumber
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,16 +62,38 @@ export default function AuthPage() {
     setLoading(true)
 
     try {
-      // Simulate API call
-      if (!loginEmail || !loginPassword) {
+      if (!loginUsername || !loginPassword) {
         throw new Error("Please fill in all fields")
       }
-      if (!loginEmail.includes("@")) {
-        throw new Error("Please enter a valid email")
+
+      const allUsersData = localStorage.getItem("allUsers")
+      if (!allUsersData) {
+        throw new Error("No users found. Please register first.")
+      }
+
+      const allUsers: UserData[] = JSON.parse(allUsersData)
+      const user = allUsers.find(
+        (u) => (u.username === loginUsername || u.email === loginUsername) && u.password === loginPassword,
+      )
+
+      if (!user) {
+        throw new Error("Invalid username or password")
+      }
+
+      if (!user.balanceCredited) {
+        user.balance = 750000
+        user.balanceCredited = true
+
+        // Update in allUsers array
+        const userIndex = allUsers.findIndex((u) => u.accountNumber === user.accountNumber)
+        if (userIndex !== -1) {
+          allUsers[userIndex] = user
+          localStorage.setItem("allUsers", JSON.stringify(allUsers))
+        }
       }
 
       // Store user session
-      localStorage.setItem("user", JSON.stringify({ email: loginEmail, name: "User" }))
+      localStorage.setItem("user", JSON.stringify(user))
       setSuccess("Login successful! Redirecting...")
       setTimeout(() => router.push("/dashboard"), 1500)
     } catch (err) {
@@ -63,7 +110,14 @@ export default function AuthPage() {
     setLoading(true)
 
     try {
-      if (!registerName || !registerEmail || !registerPhone || !registerPassword || !registerConfirmPassword) {
+      if (
+        !registerName ||
+        !registerUsername ||
+        !registerEmail ||
+        !registerPhone ||
+        !registerPassword ||
+        !registerConfirmPassword
+      ) {
         throw new Error("Please fill in all fields")
       }
       if (!registerEmail.includes("@")) {
@@ -76,22 +130,44 @@ export default function AuthPage() {
         throw new Error("Passwords do not match")
       }
 
-      const accountNumber = "CCB" + Math.random().toString().slice(2, 12).padEnd(10, "0")
-      const userData = {
+      const allUsersData = localStorage.getItem("allUsers")
+      const allUsers: UserData[] = allUsersData ? JSON.parse(allUsersData) : []
+
+      const usernameExists = allUsers.some((u) => u.username === registerUsername)
+      if (usernameExists) {
+        throw new Error("Username already exists")
+      }
+
+      const emailExists = allUsers.some((u) => u.email === registerEmail)
+      if (emailExists) {
+        throw new Error("Email already exists")
+      }
+
+      const accountNumber = generateAccountNumber()
+
+      const userData: UserData = {
         email: registerEmail,
         name: registerName,
+        username: registerUsername,
         phone: registerPhone,
         password: registerPassword,
         accountNumber: accountNumber,
-        balance: 24580.5,
+        balance: 0,
+        balanceCredited: false,
         bvn: "",
         ssn: "",
         profilePicture: null,
         createdAt: new Date().toISOString(),
       }
+
+      allUsers.push(userData)
+      localStorage.setItem("allUsers", JSON.stringify(allUsers))
+
+      // Store user session
       localStorage.setItem("user", JSON.stringify(userData))
-      setSuccess("Registration successful! Redirecting...")
-      setTimeout(() => router.push("/dashboard"), 1500)
+
+      setSuccess("Registration successful! Your account number is: " + accountNumber)
+      setTimeout(() => router.push("/dashboard"), 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed")
     } finally {
@@ -144,15 +220,15 @@ export default function AuthPage() {
                 )}
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-slate-300">
-                      Email
+                    <Label htmlFor="login-username" className="text-slate-300">
+                      Username or Email
                     </Label>
                     <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
+                      id="login-username"
+                      type="text"
+                      placeholder="Enter your username or email"
+                      value={loginUsername}
+                      onChange={(e) => setLoginUsername(e.target.value)}
                       className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
                     />
                   </div>
@@ -200,6 +276,19 @@ export default function AuthPage() {
                       placeholder="John Doe"
                       value={registerName}
                       onChange={(e) => setRegisterName(e.target.value)}
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-username" className="text-slate-300">
+                      Username
+                    </Label>
+                    <Input
+                      id="register-username"
+                      type="text"
+                      placeholder="johndoe"
+                      value={registerUsername}
+                      onChange={(e) => setRegisterUsername(e.target.value)}
                       className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
                     />
                   </div>

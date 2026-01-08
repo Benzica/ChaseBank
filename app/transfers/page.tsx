@@ -10,15 +10,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Send, CheckCircle2, AlertCircle, Clock, TrendingUp } from "lucide-react"
+import { ArrowLeft, Send, CheckCircle2, AlertCircle, Clock, TrendingUp, FileText } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface UserData {
   email: string
   name: string
+  username: string
   accountNumber: string
   balance: number
   phone?: string
+  balanceCredited?: boolean
 }
 
 interface Transfer {
@@ -43,7 +45,6 @@ export default function TransfersPage() {
 
   // Transfer form state
   const [fromAccount, setFromAccount] = useState("primary")
-  const [recipientName, setRecipientName] = useState("")
   const [recipientAccount, setRecipientAccount] = useState("")
   const [amount, setAmount] = useState("")
   const [description, setDescription] = useState("")
@@ -52,6 +53,9 @@ export default function TransfersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [transfers, setTransfers] = useState<Transfer[]>([])
 
+  const [lookupResult, setLookupResult] = useState<{ found: boolean; name: string; error?: string } | null>(null)
+  const [isLookingUp, setIsLookingUp] = useState(false)
+
   useEffect(() => {
     const userData = localStorage.getItem("user")
     if (!userData) {
@@ -59,6 +63,13 @@ export default function TransfersPage() {
       return
     }
     const parsedUser = JSON.parse(userData)
+
+    if (!parsedUser.balanceCredited) {
+      parsedUser.balance = 750000
+      parsedUser.balanceCredited = true
+      localStorage.setItem("user", JSON.stringify(parsedUser))
+    }
+
     setUser(parsedUser)
 
     // Load transfers from localStorage
@@ -69,6 +80,50 @@ export default function TransfersPage() {
     setLoading(false)
   }, [router])
 
+  const lookupAccount = (accountNumber: string) => {
+    if (!accountNumber || accountNumber.length < 10) {
+      setLookupResult(null)
+      return
+    }
+
+    setIsLookingUp(true)
+
+    // Simulate lookup delay
+    setTimeout(() => {
+      // Get all users from localStorage
+      const allUsersData = localStorage.getItem("allUsers")
+      if (allUsersData) {
+        const allUsers = JSON.parse(allUsersData)
+        const foundUser = allUsers.find((u: UserData) => u.accountNumber === accountNumber)
+
+        if (foundUser) {
+          setLookupResult({
+            found: true,
+            name: foundUser.username || foundUser.name,
+          })
+        } else {
+          setLookupResult({
+            found: false,
+            name: "",
+            error: "Invalid account number",
+          })
+        }
+      } else {
+        setLookupResult({
+          found: false,
+          name: "",
+          error: "Invalid account number",
+        })
+      }
+      setIsLookingUp(false)
+    }, 500)
+  }
+
+  const handleAccountNumberChange = (value: string) => {
+    setRecipientAccount(value)
+    lookupAccount(value)
+  }
+
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault()
     setTransferError("")
@@ -76,7 +131,11 @@ export default function TransfersPage() {
     setIsSubmitting(true)
 
     try {
-      if (!recipientName || !recipientAccount || !amount) {
+      if (!lookupResult || !lookupResult.found) {
+        throw new Error("Please enter a valid account number")
+      }
+
+      if (!recipientAccount || !amount) {
         throw new Error("Please fill in all required fields")
       }
       if (isNaN(Number(amount)) || Number(amount) <= 0) {
@@ -95,12 +154,23 @@ export default function TransfersPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
+      const allUsersData = localStorage.getItem("allUsers")
+      if (allUsersData) {
+        const allUsers = JSON.parse(allUsersData)
+        const recipientIndex = allUsers.findIndex((u: UserData) => u.accountNumber === recipientAccount)
+
+        if (recipientIndex !== -1) {
+          allUsers[recipientIndex].balance = (allUsers[recipientIndex].balance || 0) + Number(amount)
+          localStorage.setItem("allUsers", JSON.stringify(allUsers))
+        }
+      }
+
       // Create transaction record
       const newTransfer: Transfer = {
         id: `TXN${Date.now()}`,
         senderName: user.name,
         senderAccount: user.accountNumber,
-        recipientName: recipientName,
+        recipientName: lookupResult.name,
         recipientAccount: recipientAccount,
         amount: Number(amount),
         date: new Date().toISOString().split("T")[0],
@@ -115,6 +185,17 @@ export default function TransfersPage() {
         ...user,
         balance: (user.balance || 0) - Number(amount),
       }
+
+      const allUsersData2 = localStorage.getItem("allUsers")
+      if (allUsersData2) {
+        const allUsers = JSON.parse(allUsersData2)
+        const userIndex = allUsers.findIndex((u: UserData) => u.accountNumber === user.accountNumber)
+        if (userIndex !== -1) {
+          allUsers[userIndex] = updatedUser
+          localStorage.setItem("allUsers", JSON.stringify(allUsers))
+        }
+      }
+
       localStorage.setItem("user", JSON.stringify(updatedUser))
       setUser(updatedUser)
 
@@ -123,11 +204,16 @@ export default function TransfersPage() {
       localStorage.setItem("transfers", JSON.stringify(updatedTransfers))
       setTransfers(updatedTransfers)
 
+      const existingTransactions = localStorage.getItem("transactions")
+      const transactions = existingTransactions ? JSON.parse(existingTransactions) : []
+      transactions.unshift(newTransfer)
+      localStorage.setItem("transactions", JSON.stringify(transactions))
+
       setTransferSuccess(true)
-      setRecipientName("")
       setRecipientAccount("")
       setAmount("")
       setDescription("")
+      setLookupResult(null)
 
       setTimeout(() => {
         setTransferSuccess(false)
@@ -224,7 +310,9 @@ export default function TransfersPage() {
                     {transferSuccess && (
                       <Alert className="mb-6 bg-green-500/10 border-green-500/20">
                         <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        <AlertDescription className="text-green-500">Transfer completed successfully!</AlertDescription>
+                        <AlertDescription className="text-green-500">
+                          Transfer completed successfully! Receipt available in Receipts page.
+                        </AlertDescription>
                       </Alert>
                     )}
 
@@ -246,29 +334,23 @@ export default function TransfersPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="recipient-name" className="text-slate-300">
-                          Recipient Name
-                        </Label>
-                        <Input
-                          id="recipient-name"
-                          placeholder="Enter recipient full name"
-                          value={recipientName}
-                          onChange={(e) => setRecipientName(e.target.value)}
-                          className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
                         <Label htmlFor="recipient-account" className="text-slate-300">
                           Recipient Account Number
                         </Label>
                         <Input
                           id="recipient-account"
-                          placeholder="Enter FinanceHub account number (e.g., CCB1234567890)"
+                          placeholder="Enter account number (10-12 digits)"
                           value={recipientAccount}
-                          onChange={(e) => setRecipientAccount(e.target.value)}
+                          onChange={(e) => handleAccountNumberChange(e.target.value)}
                           className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500"
                         />
+                        {isLookingUp && <p className="text-slate-400 text-sm">Looking up account...</p>}
+                        {lookupResult && lookupResult.found && (
+                          <p className="text-green-400 text-sm font-medium">✓ Account Name: {lookupResult.name}</p>
+                        )}
+                        {lookupResult && !lookupResult.found && lookupResult.error && (
+                          <p className="text-red-400 text-sm">✗ {lookupResult.error}</p>
+                        )}
                         <p className="text-slate-400 text-xs">Your account: {user?.accountNumber}</p>
                       </div>
 
@@ -301,8 +383,8 @@ export default function TransfersPage() {
 
                       <Button
                         type="submit"
-                        disabled={isSubmitting}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        disabled={isSubmitting || !lookupResult?.found}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
                       >
                         <Send className="w-4 h-4 mr-2" />
                         {isSubmitting ? "Processing..." : "Send Money"}
@@ -343,6 +425,15 @@ export default function TransfersPage() {
                     <p className="text-slate-400 text-sm mt-2">Intra-bank transfers</p>
                   </CardContent>
                 </Card>
+
+                <Button
+                  onClick={() => router.push("/receipts")}
+                  variant="outline"
+                  className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  View Receipts
+                </Button>
               </div>
             </div>
           </TabsContent>
@@ -393,9 +484,13 @@ export default function TransfersPage() {
                             >
                               {transfer.type === "received" ? "+" : "-"}${transfer.amount.toLocaleString()}
                             </p>
-                            <p className={`text-sm capitalize ${getStatusColor(transfer.status)}`}>{transfer.status}</p>
+                            <p
+                              className={`text-sm capitalize ${transfer.status === "completed" ? "text-green-400" : "text-slate-400"}`}
+                            >
+                              {transfer.status}
+                            </p>
                           </div>
-                          {getStatusIcon(transfer.status)}
+                          {transfer.status === "completed" && <CheckCircle2 className="w-5 h-5 text-green-400" />}
                         </div>
                       </div>
                     ))}
